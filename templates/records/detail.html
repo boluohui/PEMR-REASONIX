@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}就医记录详情 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-flex-between md-mb-3">
+    <h4 class="fw-semibold" style="margin:0;">
+        <i class="bi bi-file-text" style="color:var(--md-primary);"></i> 就医记录详情
+    </h4>
+    <div class="md-flex">
+        <a href="{{ url_for('records.export_record', record_id=record.id) }}" class="md-btn md-btn-filled">
+            <i class="bi bi-download"></i> 导出
+        </a>
+        <a href="{{ url_for('records.edit_record', record_id=record.id) }}" class="md-btn md-btn-tonal">
+            <i class="bi bi-pencil"></i> 编辑
+        </a>
+        <a href="{{ url_for('records.list_records') }}" class="md-btn md-btn-outlined">
+            <i class="bi bi-list"></i> 返回列表
+        </a>
+    </div>
+</div>
+
+<!-- 基本信息 -->
+<div class="md-card md-card-elevated md-mb-3">
+    <div class="md-card-header">
+        <i class="bi bi-info-circle" style="color:var(--md-primary);"></i> 基本信息
+    </div>
+    <div class="md-card-body">
+        <div class="md-table-wrap">
+            <table class="md-table">
+                <tr>
+                    <th style="width:100px;">就诊日期</th>
+                    <td>{{ record.visit_date }}</td>
+                    <th style="width:80px;">医院</th>
+                    <td>{{ record.hospital }}</td>
+                </tr>
+                <tr>
+                    <th>科室</th>
+                    <td>{{ record.department or '-' }}</td>
+                    <th>医生</th>
+                    <td>{{ record.doctor or '-' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        {% if record.chief_complaint %}
+        <div class="md-mt-3">
+            <div style="font-weight:600;font-size:14px;color:var(--md-on-surface-variant);">主诉</div>
+            <p style="margin:4px 0 0;">{{ record.chief_complaint | nl2br }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.present_illness %}
+        <hr class="md-divider">
+        <div>
+            <div style="font-weight:600;font-size:14px;color:var(--md-on-surface-variant);">现病史</div>
+            <p style="margin:4px 0 0;">{{ record.present_illness | nl2br }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.diagnosis %}
+        <hr class="md-divider">
+        <div>
+            <div style="font-weight:600;font-size:14px;color:var(--md-on-surface-variant);">诊断</div>
+            <p style="margin:4px 0 0;">{{ record.diagnosis | nl2br }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.notes %}
+        <hr class="md-divider">
+        <div>
+            <div style="font-weight:600;font-size:14px;color:var(--md-on-surface-variant);">备注</div>
+            <p style="margin:4px 0 0;">{{ record.notes | nl2br }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 关联的检验检查 -->
+<div class="md-card md-mb-3">
+    <div class="md-card-header md-flex-between">
+        <span><i class="bi bi-clipboard-data" style="color:var(--md-tertiary);"></i> 关联的检验检查 ({{ record.exam_results.count() }})</span>
+        <a href="{{ url_for('exams.create_exam', record_id=record.id) }}" class="md-btn md-btn-tonal md-btn-sm">
+            <i class="bi bi-plus-lg"></i> 添加
+        </a>
+    </div>
+    {% if record.exam_results.count() > 0 %}
+        {% for exam in record.exam_results %}
+        <a href="{{ url_for('exams.view_exam', exam_id=exam.id) }}" class="md-list-item">
+            <div class="md-list-item-content">
+                <div class="md-list-item-title">{{ exam.exam_name }}</div>
+            </div>
+            <div class="md-list-item-meta">{{ exam.exam_date }} | {{ exam.category }}</div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="md-card-body text-center" style="color:var(--md-on-surface-variant);font-size:14px;">
+            暂未关联检验检查
+        </div>
+    {% endif %}
+</div>
+
+<!-- 关联的处方 -->
+<div class="md-card md-mb-3">
+    <div class="md-card-header md-flex-between">
+        <span><i class="bi bi-capsule" style="color:#D68C2C;"></i> 关联的处方 ({{ record.prescriptions.count() }})</span>
+        <a href="{{ url_for('prescriptions.create_prescription', record_id=record.id) }}" class="md-btn md-btn-tonal md-btn-sm">
+            <i class="bi bi-plus-lg"></i> 添加
+        </a>
+    </div>
+    {% if record.prescriptions.count() > 0 %}
+        {% for p in record.prescriptions %}
+        <a href="{{ url_for('prescriptions.view_prescription', prescription_id=p.id) }}" class="md-list-item">
+            <div class="md-list-item-content">
+                <div class="md-list-item-title">{{ p.prescription_date }} - {{ p.hospital or '未知医院' }}</div>
+            </div>
+            <div class="md-list-item-meta">{{ p.items.count() }} 种药品</div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="md-card-body text-center" style="color:var(--md-on-surface-variant);font-size:14px;">
+            暂未关联处方
+        </div>
+    {% endif %}
+</div>
+
+<!-- 删除 -->
+<div class="text-end">
+    <form method="POST" action="{{ url_for('records.delete_record', record_id=record.id) }}"
+          onsubmit="return confirm('确定要删除这条就医记录吗？关联的检验检查和处方也将被删除。')">
+        <button type="submit" class="md-btn md-btn-danger md-btn-sm">
+            <i class="bi bi-trash"></i> 删除此记录
+        </button>
+    </form>
+</div>
+{% endblock %}

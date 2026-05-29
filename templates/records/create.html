@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}新建就医记录 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-card md-card-elevated">
+    <div class="md-card-header">
+        <i class="bi bi-plus-circle" style="color:var(--md-primary);"></i> 新建就医记录
+    </div>
+    <div class="md-card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-4 md-field">
+                    <label>就诊日期 <span style="color:var(--md-error);">*</span></label>
+                    <input type="date" class="md-input" name="visit_date" required>
+                </div>
+                <div class="col-md-4 md-field">
+                    <label>医院名称 <span style="color:var(--md-error);">*</span></label>
+                    <input type="text" class="md-input" name="hospital" placeholder="如: 北京协和医院" required>
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>科室</label>
+                    <input type="text" class="md-input" name="department" placeholder="如: 内科">
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>医生</label>
+                    <input type="text" class="md-input" name="doctor" placeholder="医生姓名">
+                </div>
+            </div>
+
+            <div class="md-field">
+                <label>主诉</label>
+                <textarea class="md-input" name="chief_complaint" rows="2" placeholder="患者主要症状和就诊原因"></textarea>
+            </div>
+
+            <div class="md-field">
+                <label>现病史</label>
+                <textarea class="md-input" name="present_illness" rows="3" placeholder="发病情况、症状演变、诊疗经过等"></textarea>
+            </div>
+
+            <div class="md-field">
+                <label>诊断</label>
+                <textarea class="md-input" name="diagnosis" rows="2" placeholder="诊断结果"></textarea>
+            </div>
+
+            <div class="md-field">
+                <label>备注</label>
+                <textarea class="md-input" name="notes" rows="2"></textarea>
+            </div>
+
+            <div class="md-flex-between">
+                <a href="{{ url_for('records.list_records') }}" class="md-btn md-btn-outlined">
+                    <i class="bi bi-arrow-left"></i> 返回
+                </a>
+                <button type="submit" class="md-btn md-btn-filled">
+                    <i class="bi bi-check-lg"></i> 保存记录
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

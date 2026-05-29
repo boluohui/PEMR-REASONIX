@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}个人电子病历系统{% endblock %}</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<!-- M3 Top App Bar -->
+<header class="app-bar">
+    <div class="app-bar-inner">
+        <a class="app-bar-brand" href="{{ url_for('index') }}">
+            <i class="bi bi-heart-pulse brand-icon"></i>
+            <span>个人电子病历</span>
+        </a>
+
+        <ul class="app-bar-nav">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/records') %}active{% endif %}"
+                   href="{{ url_for('records.list_records') }}">
+                    <i class="bi bi-file-text"></i> 就医记录
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/exams') %}active{% endif %}"
+                   href="{{ url_for('exams.list_exams') }}">
+                    <i class="bi bi-clipboard-data"></i> 检验检查
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/prescriptions') %}active{% endif %}"
+                   href="{{ url_for('prescriptions.list_prescriptions') }}">
+                    <i class="bi bi-capsule"></i> 处方
+                </a>
+            </li>
+        </ul>
+
+        <!-- 主题切换 -->
+        <div class="theme-picker-wrapper">
+            <button class="theme-btn" onclick="toggleThemePanel()" aria-label="切换主题" title="切换主题颜色">
+                <i class="bi bi-palette"></i>
+            </button>
+            <div class="theme-panel" id="themePanel">
+                <div class="theme-panel-header">主题颜色</div>
+                <div class="theme-options">
+                    <button class="theme-option" data-theme="teal" onclick="setTheme('teal')" title="深青（默认）">
+                        <span class="theme-swatch" style="background:#006B5E;"></span>
+                        <span class="theme-label">默认</span>
+                    </button>
+                    <button class="theme-option" data-theme="blue" onclick="setTheme('blue')" title="专业蓝">
+                        <span class="theme-swatch" style="background:#0061A4;"></span>
+                        <span class="theme-label">蓝色</span>
+                    </button>
+                    <button class="theme-option" data-theme="purple" onclick="setTheme('purple')" title="典雅紫">
+                        <span class="theme-swatch" style="background:#7A4BA0;"></span>
+                        <span class="theme-label">紫色</span>
+                    </button>
+                    <button class="theme-option" data-theme="rose" onclick="setTheme('rose')" title="暖玫瑰">
+                        <span class="theme-swatch" style="background:#B84A6A;"></span>
+                        <span class="theme-label">玫红</span>
+                    </button>
+                    <button class="theme-option" data-theme="green" onclick="setTheme('green')" title="清新绿">
+                        <span class="theme-swatch" style="background:#3A7D44;"></span>
+                        <span class="theme-label">绿色</span>
+                    </button>
+                    <hr class="theme-divider">
+                    <button class="theme-option" data-theme="dark" onclick="setTheme('dark')" title="暗色模式">
+                        <span class="theme-swatch" style="background:#1E1E1E;">
+                            <i class="bi bi-moon-stars" style="color:#fff;font-size:14px;"></i>
+                        </span>
+                        <span class="theme-label">暗色</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button class="app-bar-toggle" onclick="toggleMobileNav()" aria-label="菜单">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+
+    <!-- 移动端导航 -->
+    <div class="app-bar-mobile-nav" id="mobileNav">
+        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('index') }}">
+            <i class="bi bi-house"></i> 首页
+        </a>
+        <a class="nav-link {% if request.path.startswith('/records') %}active{% endif %}"
+           href="{{ url_for('records.list_records') }}">
+            <i class="bi bi-file-text"></i> 就医记录
+        </a>
+        <a class="nav-link {% if request.path.startswith('/exams') %}active{% endif %}"
+           href="{{ url_for('exams.list_exams') }}">
+            <i class="bi bi-clipboard-data"></i> 检验检查
+        </a>
+        <a class="nav-link {% if request.path.startswith('/prescriptions') %}active{% endif %}"
+           href="{{ url_for('prescriptions.list_prescriptions') }}">
+            <i class="bi bi-capsule"></i> 处方
+        </a>
+    </div>
+</header>
+
+<!-- Flash 消息 -->
+<div class="md-container md-mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="md-alert md-alert-{{ category }}" role="alert">
+                    <i class="bi {% if category == 'success' %}bi-check-circle{% elif category == 'danger' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="md-alert-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- 主内容 -->
+<main class="md-main">
+    <div class="md-container">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<script>
+// ====== 主题切换 ======
+const THEMES = {
+    teal: {
+        '--md-primary': '#006B5E',
+        '--md-on-primary': '#FFFFFF',
+        '--md-primary-container': '#B4F4E0',
+        '--md-on-primary-container': '#00201E',
+        '--md-secondary': '#4B635B',
+        '--md-secondary-container': '#CDE9DD',
+        '--md-on-secondary-container': '#07201A',
+        '--md-tertiary': '#3D6473',
+        '--md-tertiary-container': '#C1E8F9',
+        '--md-on-tertiary-container': '#001F29',
+    },
+    blue: {
+        '--md-primary': '#0061A4',
+        '--md-on-primary': '#FFFFFF',
+        '--md-primary-container': '#CDE5FF',
+        '--md-on-primary-container': '#001C39',
+        '--md-secondary': '#526070',
+        '--md-secondary-container': '#D6E3F7',
+        '--md-on-secondary-container': '#0E1D2A',
+        '--md-tertiary': '#6B5778',
+        '--md-tertiary-container': '#F3DAFF',
+        '--md-on-tertiary-container': '#261431',
+    },
+    purple: {
+        '--md-primary': '#7A4BA0',
+        '--md-on-primary': '#FFFFFF',
+        '--md-primary-container': '#F0DAFF',
+        '--md-on-primary-container': '#2D0050',
+        '--md-secondary': '#665A6F',
+        '--md-secondary-container': '#EDDDF6',
+        '--md-on-secondary-container': '#211829',
+        '--md-tertiary': '#82524B',
+        '--md-tertiary-container': '#FFDAD5',
+        '--md-on-tertiary-container': '#33110E',
+    },
+    rose: {
+        '--md-primary': '#B84A6A',
+        '--md-on-primary': '#FFFFFF',
+        '--md-primary-container': '#FFD9E2',
+        '--md-on-primary-container': '#3E001C',
+        '--md-secondary': '#7D525C',
+        '--md-secondary-container': '#FFD9DF',
+        '--md-on-secondary-container': '#311018',
+        '--md-tertiary': '#A96347',
+        '--md-tertiary-container': '#FFDBCC',
+        '--md-on-tertiary-container': '#3D1505',
+    },
+    green: {
+        '--md-primary': '#3A7D44',
+        '--md-on-primary': '#FFFFFF',
+        '--md-primary-container': '#BEF0C0',
+        '--md-on-primary-container': '#002205',
+        '--md-secondary': '#506352',
+        '--md-secondary-container': '#D3E8D3',
+        '--md-on-secondary-container': '#0E1F12',
+        '--md-tertiary': '#39656D',
+        '--md-tertiary-container': '#BCEAF3',
+        '--md-on-tertiary-container': '#001F24',
+    },
+    dark: {
+        '--md-primary': '#4FDA9E',
+        '--md-on-primary': '#00382A',
+        '--md-primary-container': '#00513E',
+        '--md-on-primary-container': '#B4F4E0',
+        '--md-secondary': '#B1CCC0',
+        '--md-on-secondary': '#1B352C',
+        '--md-secondary-container': '#324B42',
+        '--md-on-secondary-container': '#CDE9DD',
+        '--md-tertiary': '#A5CDDE',
+        '--md-on-tertiary': '#073543',
+        '--md-tertiary-container': '#254C5A',
+        '--md-on-tertiary-container': '#C1E8F9',
+        '--md-background': '#191C1A',
+        '--md-on-background': '#E1E3DF',
+        '--md-surface': '#191C1A',
+        '--md-on-surface': '#E1E3DF',
+        '--md-surface-variant': '#404943',
+        '--md-on-surface-variant': '#BFC9C2',
+        '--md-outline': '#89938D',
+        '--md-outline-variant': '#404943',
+        '--md-surface-1': '#252725',
+        '--md-surface-2': '#2A2D2B',
+        '--md-surface-3': '#303331',
+        '--md-surface-4': '#242726',
+        '--md-surface-5': '#272E29',
+        '--md-error': '#FFB4AB',
+        '--md-error-container': '#93000A',
+        '--md-on-error-container': '#FFDAD6',
+    }
+};
+
+function toggleThemePanel() {
+    const panel = document.getElementById('themePanel');
+    panel.classList.toggle('open');
+    // 点击面板外关闭
+    if (panel.classList.contains('open')) {
+        document.addEventListener('click', closePanelOutside);
+    } else {
+        document.removeEventListener('click', closePanelOutside);
+    }
+}
+
+function closePanelOutside(e) {
+    const panel = document.getElementById('themePanel');
+    const btn = document.querySelector('.theme-btn');
+    if (!panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.remove('open');
+        document.removeEventListener('click', closePanelOutside);
+    }
+}
+
+function setTheme(name) {
+    const vars = THEMES[name];
+    if (!vars) return;
+
+    const root = document.documentElement;
+
+    // 清除所有之前通过主题设置的内联 CSS 变量，恢复 :root 默认值
+    const allThemeKeys = new Set();
+    Object.values(THEMES).forEach(t => Object.keys(t).forEach(k => allThemeKeys.add(k)));
+    allThemeKeys.forEach(key => root.style.removeProperty(key));
+
+    // 设置新主题变量
+    for (const [key, val] of Object.entries(vars)) {
+        root.style.setProperty(key, val);
+    }
+
+    // 暗色模式额外标记
+    if (name === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        document.querySelector('meta[name="color-scheme"]')?.remove();
+        const meta = document.createElement('meta');
+        meta.name = 'color-scheme';
+        meta.content = 'dark';
+        document.head.appendChild(meta);
+    } else {
+        root.removeAttribute('data-theme');
+        document.querySelector('meta[name="color-scheme"]')?.remove();
+    }
+
+    // 更新选中状态
+    document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
+    const activeBtn = document.querySelector(`.theme-option[data-theme="${name}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    // 持久化
+    localStorage.setItem('med-records-theme', name);
+
+    // 关闭面板
+    document.getElementById('themePanel').classList.remove('open');
+    document.removeEventListener('click', closePanelOutside);
+}
+
+// 页面加载时恢复主题
+document.addEventListener('DOMContentLoaded', function() {
+    const saved = localStorage.getItem('med-records-theme');
+    if (saved && THEMES[saved]) {
+        setTheme(saved);
+    } else {
+        // 标记默认主题选中
+        const defaultBtn = document.querySelector('.theme-option[data-theme="teal"]');
+        if (defaultBtn) defaultBtn.classList.add('active');
+    }
+
+    // 移动端导航链接点击收起
+    document.querySelectorAll('.app-bar-mobile-nav .nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            document.getElementById('mobileNav').classList.remove('open');
+        });
+    });
+});
+</script>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

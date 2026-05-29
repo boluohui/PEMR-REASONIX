@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>就医记录 - {{ record.hospital }} ({{ record.visit_date }})</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    color: #222; background: #fff;
+    padding: 40px 50px;
+    line-height: 1.7;
+  }
+  h1 {
+    text-align: center; font-size: 22px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #1a73e8;
+    margin-bottom: 28px;
+    color: #1a73e8;
+  }
+  h2 {
+    font-size: 16px; color: #1a73e8;
+    border-left: 4px solid #1a73e8;
+    padding-left: 10px;
+    margin: 24px 0 12px 0;
+  }
+  .subtitle {
+    text-align: center; color: #888; font-size: 13px;
+    margin-top: -18px; margin-bottom: 28px;
+  }
+  table.info {
+    width: 100%; border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  table.info th, table.info td {
+    border: 1px solid #ddd;
+    padding: 8px 14px; font-size: 14px;
+    text-align: left;
+  }
+  table.info th {
+    background: #f5f7fa; font-weight: 600;
+    width: 120px; white-space: nowrap;
+  }
+  .section {
+    margin-bottom: 20px;
+  }
+  .section .label {
+    font-weight: 600; color: #555; font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .section .content {
+    font-size: 14px; white-space: pre-wrap;
+    background: #fafafa; padding: 12px 16px;
+    border-radius: 6px; border: 1px solid #eee;
+  }
+  table.detail {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.detail th {
+    background: #e8f0fe; color: #1a73e8;
+    border: 1px solid #d0d7de;
+    padding: 6px 10px; font-weight: 600;
+    text-align: center;
+  }
+  table.detail td {
+    border: 1px solid #d0d7de;
+    padding: 6px 10px; text-align: center;
+  }
+  table.detail td.left { text-align: left; }
+  .exam-cat {
+    display: inline-block;
+    background: #e8f0fe; color: #1a73e8;
+    font-size: 11px; padding: 1px 8px;
+    border-radius: 10px;
+  }
+  .exam-cat.cat-check { background: #e6f7ee; color: #0d6e2d; }
+  .footer {
+    text-align: center; color: #aaa; font-size: 12px;
+    margin-top: 40px; padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+  @media print {
+    body { padding: 20px 30px; }
+    h2 { page-break-after: avoid; }
+    .section, table.detail { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📋 就医记录</h1>
+<p class="subtitle">导出时间: {{ datetime.now().strftime('%Y-%m-%d %H:%M') }}</p>
+
+<!-- 基本信息 -->
+<h2>基本信息</h2>
+<table class="info">
+  <tr>
+    <th>就诊日期</th>
+    <td>{{ record.visit_date }}</td>
+    <th>医院名称</th>
+    <td>{{ record.hospital }}</td>
+  </tr>
+  <tr>
+    <th>科室</th>
+    <td>{{ record.department or '-' }}</td>
+    <th>医生</th>
+    <td>{{ record.doctor or '-' }}</td>
+  </tr>
+</table>
+
+<!-- 主诉 -->
+{% if record.chief_complaint %}
+<div class="section">
+  <div class="label">主诉</div>
+  <div class="content">{{ record.chief_complaint }}</div>
+</div>
+{% endif %}
+
+<!-- 现病史 -->
+{% if record.present_illness %}
+<div class="section">
+  <div class="label">现病史</div>
+  <div class="content">{{ record.present_illness }}</div>
+</div>
+{% endif %}
+
+<!-- 诊断 -->
+{% if record.diagnosis %}
+<div class="section">
+  <div class="label">诊断</div>
+  <div class="content">{{ record.diagnosis }}</div>
+</div>
+{% endif %}
+
+<!-- 备注 -->
+{% if record.notes %}
+<div class="section">
+  <div class="label">备注</div>
+  <div class="content">{{ record.notes }}</div>
+</div>
+{% endif %}
+
+<!-- 关联检验检查 -->
+{% if record.exam_results.count() > 0 %}
+<h2>🔬 检验检查结果 ({{ record.exam_results.count() }} 项)</h2>
+<table class="detail">
+  <thead>
+    <tr>
+      <th style="width:16%">日期</th>
+      <th>分类</th>
+      <th style="width:22%">项目名称</th>
+      <th style="width:18%">结果</th>
+      <th style="width:18%">参考范围</th>
+      <th style="width:12%">单位</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for exam in record.exam_results %}
+    <tr>
+      <td>{{ exam.exam_date }}</td>
+      <td><span class="exam-cat {{ 'cat-check' if exam.category == '检查' }}">{{ exam.category }}</span></td>
+      <td class="left">{{ exam.exam_name }}</td>
+      <td>{{ exam.result or '-' }}</td>
+      <td>{{ exam.reference_range or '-' }}</td>
+      <td>{{ exam.unit or '-' }}</td>
+    </tr>
+    {% if exam.conclusion %}
+    <tr>
+      <td colspan="6" class="left" style="color:#666; font-size:12px;">
+        <strong>结论：</strong>{{ exam.conclusion }}
+      </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- 关联处方 -->
+{% if record.prescriptions.count() > 0 %}
+<h2>💊 处方 ({{ record.prescriptions.count() }} 张)</h2>
+{% for p in record.prescriptions %}
+<div style="margin-bottom:18px; border:1px solid #e0e0e0; border-radius:6px; padding:14px 16px;">
+  <table class="info" style="margin-bottom:10px;">
+    <tr>
+      <th style="width:100px;">开药日期</th>
+      <td>{{ p.prescription_date }}</td>
+      <th style="width:80px;">医生</th>
+      <td>{{ p.doctor or '-' }}</td>
+    </tr>
+    {% if p.diagnosis %}
+    <tr>
+      <th>诊断</th>
+      <td colspan="3">{{ p.diagnosis }}</td>
+    </tr>
+    {% endif %}
+  </table>
+  <table class="detail">
+    <thead>
+      <tr>
+        <th style="width:22%">药品名称</th>
+        <th style="width:14%">单次剂量</th>
+        <th style="width:16%">频次</th>
+        <th style="width:12%">途径</th>
+        <th style="width:10%">疗程</th>
+        <th style="width:10%">数量</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in p.items %}
+      <tr>
+        <td class="left"><strong>{{ item.drug_name }}</strong></td>
+        <td>{{ item.dosage or '-' }}</td>
+        <td>{{ item.frequency or '-' }}</td>
+        <td>{{ item.route or '-' }}</td>
+        <td>{{ item.duration or '-' }}</td>
+        <td>{{ item.quantity or '-' }}</td>
+        <td>{{ item.notes or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if p.notes %}
+  <div style="margin-top:8px; font-size:13px; color:#666;">
+    <strong>处方备注：</strong>{{ p.notes }}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="footer">
+  由 个人电子病历档案系统 导出 &mdash; 本文件包含完整就医记录及所有关联数据
+</div>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}添加检验检查结果 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-card md-card-elevated">
+    <div class="md-card-header">
+        <i class="bi bi-plus-circle" style="color:var(--md-tertiary);"></i> 添加检验检查结果
+    </div>
+    <div class="md-card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-4 md-field">
+                    <label>检查日期 <span style="color:var(--md-error);">*</span></label>
+                    <input type="date" class="md-input" name="exam_date" required>
+                </div>
+                <div class="col-md-4 md-field">
+                    <label>医院</label>
+                    <input type="text" class="md-input" name="hospital" placeholder="如: 北京协和医院">
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>分类 <span style="color:var(--md-error);">*</span></label>
+                    <select class="md-input" name="category" required>
+                        <option value="">请选择</option>
+                        <option value="检验">检验 (血液/尿液/生化等)</option>
+                        <option value="检查">检查 (CT/X光/B超等)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>关联记录ID</label>
+                    <input type="number" class="md-input" name="medical_record_id" value="{{ medical_record_id or '' }}" placeholder="可选">
+                    <div style="font-size:12px;color:var(--md-on-surface-variant);margin-top:2px;">可选，输入就医记录ID</div>
+                </div>
+            </div>
+
+            <div class="md-field">
+                <label>项目名称 <span style="color:var(--md-error);">*</span></label>
+                <input type="text" class="md-input" name="exam_name" placeholder="如: 血常规、胸部CT" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 md-field">
+                    <label>结果</label>
+                    <input type="text" class="md-input" name="result" placeholder="检查结果数值或描述">
+                </div>
+                <div class="col-md-4 md-field">
+                    <label>参考范围</label>
+                    <input type="text" class="md-input" name="reference_range" placeholder="如: 3.5-5.5">
+                </div>
+                <div class="col-md-4 md-field">
+                    <label>单位</label>
+                    <input type="text" class="md-input" name="unit" placeholder="如: ×10^9/L">
+                </div>
+            </div>
+
+            <div class="md-field">
+                <label>结论/描述</label>
+                <textarea class="md-input" name="conclusion" rows="3" placeholder="检查结论、影像所见等"></textarea>
+            </div>
+
+            <div class="md-field">
+                <label>备注</label>
+                <textarea class="md-input" name="notes" rows="2"></textarea>
+            </div>
+
+            <div class="md-flex-between">
+                <a href="{{ url_for('exams.list_exams') }}" class="md-btn md-btn-outlined">
+                    <i class="bi bi-arrow-left"></i> 返回
+                </a>
+                <button type="submit" class="md-btn md-btn-filled">
+                    <i class="bi bi-check-lg"></i> 保存结果
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}处方 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-flex-between md-mb-4">
+    <h4 class="fw-semibold" style="margin:0;">
+        <i class="bi bi-capsule" style="color:#D68C2C;"></i> 处方
+    </h4>
+    <a href="{{ url_for('prescriptions.create_prescription') }}" class="md-btn md-btn-filled">
+        <i class="bi bi-plus-lg"></i> 新建处方
+    </a>
+</div>
+
+<!-- 搜索 -->
+<form class="row g-2 md-mb-4" method="GET">
+    <div class="col-md-10">
+        <input type="text" class="md-input" name="search" placeholder="搜索医院、医生、诊断…" value="{{ search }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="md-btn md-btn-tonal w-100"><i class="bi bi-search"></i> 搜索</button>
+    </div>
+</form>
+
+{% if prescriptions %}
+    <div class="md-card">
+        {% for p in prescriptions %}
+        <a href="{{ url_for('prescriptions.view_prescription', prescription_id=p.id) }}" class="md-list-item">
+            <div class="md-list-item-content">
+                <div class="md-list-item-title">{{ p.hospital or '未知医院' }}</div>
+                <div class="md-list-item-sub">
+                    {% if p.doctor %}
+                        <span class="md-chip md-chip-info">{{ p.doctor }} 医生</span>
+                    {% endif %}
+                    {% if p.diagnosis %}
+                        <span class="md-chip md-chip-primary">诊断: {{ p.diagnosis[:50] }}{% if p.diagnosis|length > 50 %}...{% endif %}</span>
+                    {% endif %}
+                    <span class="md-chip" style="background:#F5E1A8;color:#5C4500;">{{ p.items.count() }} 种药品</span>
+                </div>
+                <div style="font-size:13px;color:var(--md-on-surface-variant);margin-top:2px;">
+                    {% for item in p.items[:3] %}
+                        {{ item.drug_name }}{% if not loop.last %}、{% endif %}
+                    {% endfor %}
+                    {% if p.items.count() > 3 %}…{% endif %}
+                </div>
+            </div>
+            <div class="md-list-item-meta">{{ p.prescription_date }}</div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="md-pagination">
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_prev }}"
+           href="{{ url_for('prescriptions.list_prescriptions', page=pagination.prev_num, search=search) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                <a class="md-page-btn {{ 'active' if p == pagination.page }}"
+                   href="{{ url_for('prescriptions.list_prescriptions', page=p, search=search) }}">{{ p }}</a>
+            {% else %}
+                <span class="md-page-btn disabled">…</span>
+            {% endif %}
+        {% endfor %}
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_next }}"
+           href="{{ url_for('prescriptions.list_prescriptions', page=pagination.next_num, search=search) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    {% endif %}
+
+{% else %}
+    <div class="md-card">
+        <div class="md-card-body text-center py-5" style="color:var(--md-on-surface-variant);">
+            <i class="bi bi-inbox" style="font-size:3rem; opacity:.4;"></i>
+            <p class="mt-2">暂无处方记录</p>
+            <a href="{{ url_for('prescriptions.create_prescription') }}" class="md-btn md-btn-filled">新建第一条处方</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

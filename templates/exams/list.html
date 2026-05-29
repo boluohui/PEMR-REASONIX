@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}检验检查 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-flex-between md-mb-4">
+    <h4 class="fw-semibold" style="margin:0;">
+        <i class="bi bi-clipboard-data" style="color:var(--md-tertiary);"></i> 检验检查
+    </h4>
+    <a href="{{ url_for('exams.create_exam') }}" class="md-btn md-btn-filled">
+        <i class="bi bi-plus-lg"></i> 添加结果
+    </a>
+</div>
+
+<!-- 搜索筛选 -->
+<form class="row g-2 md-mb-4" method="GET">
+    <div class="col-md-8">
+        <input type="text" class="md-input" name="search" placeholder="搜索项目名称、医院、结论…" value="{{ search }}">
+    </div>
+    <div class="col-md-2">
+        <select class="md-input" name="category">
+            <option value="">全部分类</option>
+            <option value="检验" {{ 'selected' if current_category == '检验' }}>检验</option>
+            <option value="检查" {{ 'selected' if current_category == '检查' }}>检查</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="md-btn md-btn-tonal w-100"><i class="bi bi-search"></i> 搜索</button>
+    </div>
+</form>
+
+{% if exams %}
+    <div class="md-card">
+        {% for exam in exams %}
+        <a href="{{ url_for('exams.view_exam', exam_id=exam.id) }}" class="md-list-item">
+            <div class="md-list-item-content">
+                <div class="md-list-item-title">
+                    <span class="md-chip {{ 'md-chip-info' if exam.category == '检验' else 'md-chip-primary' }}">{{ exam.category }}</span>
+                    {{ exam.exam_name }}
+                </div>
+                <div class="md-list-item-sub">
+                    {% if exam.hospital %}
+                        <span class="md-chip md-chip-secondary">{{ exam.hospital }}</span>
+                    {% endif %}
+                    {% if exam.result %}
+                        <span>结果: {{ exam.result[:60] }}{% if exam.result|length > 60 %}...{% endif %}</span>
+                    {% endif %}
+                </div>
+                {% if exam.conclusion %}
+                    <div style="font-size:13px;color:var(--md-on-surface-variant);margin-top:2px;">
+                        {{ exam.conclusion[:80] }}{% if exam.conclusion|length > 80 %}...{% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="md-list-item-meta">{{ exam.exam_date }}</div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="md-pagination">
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_prev }}"
+           href="{{ url_for('exams.list_exams', page=pagination.prev_num, search=search, category=current_category) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                <a class="md-page-btn {{ 'active' if p == pagination.page }}"
+                   href="{{ url_for('exams.list_exams', page=p, search=search, category=current_category) }}">{{ p }}</a>
+            {% else %}
+                <span class="md-page-btn disabled">…</span>
+            {% endif %}
+        {% endfor %}
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_next }}"
+           href="{{ url_for('exams.list_exams', page=pagination.next_num, search=search, category=current_category) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    {% endif %}
+
+{% else %}
+    <div class="md-card">
+        <div class="md-card-body text-center py-5" style="color:var(--md-on-surface-variant);">
+            <i class="bi bi-inbox" style="font-size:3rem; opacity:.4;"></i>
+            <p class="mt-2">暂无检验检查结果</p>
+            <a href="{{ url_for('exams.create_exam') }}" class="md-btn md-btn-filled">添加第一条结果</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

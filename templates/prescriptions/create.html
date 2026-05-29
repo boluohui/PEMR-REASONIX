@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}新建处方 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-card md-card-elevated">
+    <div class="md-card-header">
+        <i class="bi bi-plus-circle" style="color:#D68C2C;"></i> 新建处方
+    </div>
+    <div class="md-card-body">
+        <form method="POST" id="prescriptionForm">
+            <div class="row">
+                <div class="col-md-4 md-field">
+                    <label>开药日期 <span style="color:var(--md-error);">*</span></label>
+                    <input type="date" class="md-input" name="prescription_date" required>
+                </div>
+                <div class="col-md-4 md-field">
+                    <label>医院</label>
+                    <input type="text" class="md-input" name="hospital" placeholder="如: 北京协和医院">
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>医生</label>
+                    <input type="text" class="md-input" name="doctor" placeholder="医生姓名">
+                </div>
+                <div class="col-md-2 md-field">
+                    <label>关联记录ID</label>
+                    <input type="number" class="md-input" name="medical_record_id" value="{{ medical_record_id or '' }}" placeholder="可选">
+                </div>
+            </div>
+
+            <div class="md-field">
+                <label>诊断</label>
+                <textarea class="md-input" name="diagnosis" rows="2" placeholder="诊断结果"></textarea>
+            </div>
+
+            <div class="md-field">
+                <label>备注</label>
+                <textarea class="md-input" name="notes" rows="2"></textarea>
+            </div>
+
+            <!-- 处方明细 -->
+            <div class="md-flex-between" style="border-bottom:1px solid var(--md-outline-variant);padding-bottom:12px;margin-bottom:16px;">
+                <span style="font-weight:600;"><i class="bi bi-capsule" style="color:#D68C2C;"></i> 药品明细</span>
+                <button type="button" class="md-btn md-btn-tonal md-btn-sm" onclick="addItem()">
+                    <i class="bi bi-plus-lg"></i> 添加药品
+                </button>
+            </div>
+
+            <div id="itemsContainer">
+                <div class="item-row" style="background:var(--md-surface-1);border-radius:var(--md-radius-md);padding:16px;margin-bottom:12px;">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">药品名称 <span style="color:var(--md-error);">*</span></label>
+                            <input type="text" class="md-input" name="drug_name[]" placeholder="如: 阿莫西林" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-2 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">单次剂量</label>
+                            <input type="text" class="md-input" name="dosage[]" placeholder="如: 0.5g" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-2 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">用药频次</label>
+                            <input type="text" class="md-input" name="frequency[]" placeholder="如: 每日3次" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-2 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">给药途径</label>
+                            <input type="text" class="md-input" name="route[]" placeholder="如: 口服" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-1 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">疗程</label>
+                            <input type="text" class="md-input" name="duration[]" placeholder="7天" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-1 md-field" style="margin-bottom:0;">
+                            <label style="font-size:12px;">数量</label>
+                            <input type="text" class="md-input" name="quantity[]" placeholder="2盒" style="padding:8px 12px;font-size:14px;">
+                        </div>
+                        <div class="col-md-1" style="text-align:center;">
+                            <button type="button" class="md-btn md-btn-danger md-btn-sm" onclick="removeItem(this)" style="min-width:36px;padding:0;">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <input type="text" class="md-input" name="item_notes[]" placeholder="备注(可选)" style="padding:8px 12px;font-size:13px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="md-flex-between md-mt-4">
+                <a href="{{ url_for('prescriptions.list_prescriptions') }}" class="md-btn md-btn-outlined">
+                    <i class="bi bi-arrow-left"></i> 返回
+                </a>
+                <button type="submit" class="md-btn md-btn-filled">
+                    <i class="bi bi-check-lg"></i> 保存处方
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addItem() {
+    const container = document.getElementById('itemsContainer');
+    const template = container.querySelector('.item-row').cloneNode(true);
+    template.querySelectorAll('input').forEach(input => input.value = '');
+    container.appendChild(template);
+}
+
+function removeItem(btn) {
+    const container = document.getElementById('itemsContainer');
+    if (container.querySelectorAll('.item-row').length <= 1) {
+        alert('至少保留一条药品明细');
+        return;
+    }
+    btn.closest('.item-row').remove();
+}
+</script>
+{% endblock %}

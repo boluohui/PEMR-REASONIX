@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}就医记录 - 个人电子病历系统{% endblock %}
+
+{% block content %}
+<div class="md-flex-between md-mb-4">
+    <h4 class="fw-semibold" style="margin:0;"><i class="bi bi-file-text" style="color:var(--md-primary);"></i> 就医记录</h4>
+    <a href="{{ url_for('records.create_record') }}" class="md-btn md-btn-filled">
+        <i class="bi bi-plus-lg"></i> 新建记录
+    </a>
+</div>
+
+<!-- 搜索栏 -->
+<form class="row g-2 md-mb-4" method="GET">
+    <div class="col-md-10">
+        <input type="text" class="md-input" name="search" placeholder="搜索医院、科室、医生、诊断、主诉…" value="{{ search }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="md-btn md-btn-tonal w-100"><i class="bi bi-search"></i> 搜索</button>
+    </div>
+</form>
+
+<!-- 记录列表 -->
+{% if records %}
+    <div class="md-card">
+        {% for record in records %}
+        <a href="{{ url_for('records.view_record', record_id=record.id) }}" class="md-list-item">
+            <div class="md-list-item-content">
+                <div class="md-list-item-title">{{ record.hospital }}</div>
+                <div class="md-list-item-sub">
+                    {% if record.department %}
+                        <span class="md-chip md-chip-secondary">{{ record.department }}</span>
+                    {% endif %}
+                    {% if record.doctor %}
+                        <span class="md-chip md-chip-info">{{ record.doctor }} 医生</span>
+                    {% endif %}
+                    {% if record.diagnosis %}
+                        <span class="md-chip md-chip-primary">诊断: {{ record.diagnosis[:50] }}{% if record.diagnosis|length > 50 %}...{% endif %}</span>
+                    {% endif %}
+                </div>
+                {% if record.chief_complaint %}
+                    <div style="font-size:13px;color:var(--md-on-surface-variant);margin-top:2px;">
+                        主诉: {{ record.chief_complaint[:80] }}{% if record.chief_complaint|length > 80 %}...{% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="md-list-item-meta">{{ record.visit_date }}</div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- 分页 -->
+    {% if pagination.pages > 1 %}
+    <div class="md-pagination">
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_prev }}"
+           href="{{ url_for('records.list_records', page=pagination.prev_num, search=search) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                <a class="md-page-btn {{ 'active' if p == pagination.page }}"
+                   href="{{ url_for('records.list_records', page=p, search=search) }}">{{ p }}</a>
+            {% else %}
+                <span class="md-page-btn disabled">…</span>
+            {% endif %}
+        {% endfor %}
+        <a class="md-page-btn {{ 'disabled' if not pagination.has_next }}"
+           href="{{ url_for('records.list_records', page=pagination.next_num, search=search) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    {% endif %}
+
+{% else %}
+    <div class="md-card">
+        <div class="md-card-body text-center py-5" style="color:var(--md-on-surface-variant);">
+            <i class="bi bi-inbox" style="font-size: 3rem; opacity:.4;"></i>
+            <p class="mt-2">暂无就医记录</p>
+            <a href="{{ url_for('records.create_record') }}" class="md-btn md-btn-filled">新建第一条记录</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
